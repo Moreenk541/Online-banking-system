@@ -14,14 +14,28 @@ def User(Base):
     password = Column(String,nullable=False)
 
 #one to many relationship user - accounts
+    accounts =relationship('Bank_Account', back_populates ='user')
 
 def Bank_Account(Base):
     __tablename__ ="accounts"
 
     id = Column(Integer,primary_key =True)
     user_id = Column(Integer,ForeignKey('users.id'))
-    account_type = column(String,nullable=False)
+    account_type = Column(String,nullable=False)
     balance = Column(Float, default =0.0)
 
-#relationship    
+#relationship  
+    user =relationship('User', back_populates = 'accounts')
+    transactions = relationship('Transaction', back_populates ='account')
 
+def Transcation(Base):
+    __tablename__ = "transactions"
+
+    id = Column(Integer,primary_key =True)
+    account_id = Column(Integer,ForeignKey=('accounts.id'))
+    type = Column (String, nullablle= False)
+    amount = Column(Float,nullale=False)
+    time=Column(DateTime,default =datetime.utcnow)
+
+#relationship
+    account = relationship('Bank_Account', back_populates='transactions')    
