@@ -33,7 +33,7 @@ def Transcation(Base):
 
     id = Column(Integer,primary_key =True)
     account_id = Column(Integer,ForeignKey=('accounts.id'))
-    type = Column (String, nullablle= False)
+    type = Column (String, nullable= False)
     amount = Column(Float,nullale=False)
     timestamp=Column(DateTime,default =datetime.utcnow)
 

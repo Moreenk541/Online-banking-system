@@ -54,7 +54,7 @@ def withdraw(account,amount):
         account.balance -=amount
         transaction =Transcation(account_id=account.id,type='withdraw',amount=amount)
         session.add(transaction)
-        session.coomit()
+        session.commit()
         print(f"Successful withdrwal of ${amount}")
 
     else:
