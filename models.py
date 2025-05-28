@@ -35,7 +35,7 @@ def Transcation(Base):
     account_id = Column(Integer,ForeignKey=('accounts.id'))
     type = Column (String, nullablle= False)
     amount = Column(Float,nullale=False)
-    time=Column(DateTime,default =datetime.utcnow)
+    timestamp=Column(DateTime,default =datetime.utcnow)
 
 #relationship
     account = relationship('Bank_Account', back_populates='transactions')    

@@ -49,4 +49,20 @@ def deposit(account,amount):
     print(f"Deposited ${amount} successfully.")
 
 #withdwraw
-def withdraw()    
+def withdraw(account,amount):
+    if account.balance >= amount:
+        account.balance -=amount
+        transaction =Transcation(account_id=account.id,type='withdraw',amount=amount)
+        session.add(transaction)
+        session.coomit()
+        print(f"Successful withdrwal of ${amount}")
+
+    else:
+        print('Insufficient funds')    
+
+
+#     Transactions
+def view_transactions(account):
+    transactions = session.query(Transcation).filter_by(account_id = account.id).all()
+    for t in transactions:
+        print(f'{t.timestamp} - {t.type} - ${t.amount}')
