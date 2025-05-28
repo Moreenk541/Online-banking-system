@@ -24,7 +24,7 @@ def Bank_Account(Base):
     account_type = Column(String,nullable=False)
     balance = Column(Float, default =0.0)
 
-#relationship  
+#relationships  
     user =relationship('User', back_populates = 'accounts')
     transactions = relationship('Transaction', back_populates ='account')
 
