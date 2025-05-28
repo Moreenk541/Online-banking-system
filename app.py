@@ -1,5 +1,6 @@
 from conn import SessionLocal
-from models import User,Bank_Account,Transcation
+from models import User, Bank_Account, Transaction
+
 from sqlalchemy.exc import IntegrityError
 
 
@@ -41,18 +42,18 @@ def create_account(user, account_type):
 
 
 #deposit
-def deposit(account,amount):
+def deposit(session,account,amount):
     account.balance  += amount 
-    transaction =Transcation(account_id =account.id, type ="deposit", amount=amount)
+    transaction =Transaction(account_id =account.id, type ="deposit", amount=amount)
     session.add(transaction)
     session.commit()
     print(f"Deposited ${amount} successfully.")
 
 #withdwraw
-def withdraw(account,amount):
+def withdraw(session,account,amount):
     if account.balance >= amount:
         account.balance -=amount
-        transaction =Transcation(account_id=account.id,type='withdraw',amount=amount)
+        transaction =Transaction(account_id=account.id,type='withdraw',amount=amount)
         session.add(transaction)
         session.commit()
         print(f"Successful withdrwal of ${amount}")
@@ -63,6 +64,6 @@ def withdraw(account,amount):
 
 #     Transactions
 def view_transactions(account):
-    transactions = session.query(Transcation).filter_by(account_id = account.id).all()
+    transactions = session.query(Transaction).filter_by(account_id = account.id).all()
     for t in transactions:
         print(f'{t.timestamp} - {t.type} - ${t.amount}')

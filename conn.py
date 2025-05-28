@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
-from sqlalchemy import sessionmaker
+from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "sqlite3:///bank.db"
+DATABASE_URL = "sqlite:///bank.db"
 
 engine = create_engine(DATABASE_URL, echo = True)
 SessionLocal = sessionmaker(bind=engine)

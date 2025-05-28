@@ -44,11 +44,11 @@ def user_menu(user):
             print(f"Balance: ${account.balance}")
         elif choice == "2":
             amount = float(input("Deposit amount: "))
-            deposit(account, amount) 
+            deposit(session,account, amount) 
 
         elif choice == "3":
             amount = float(input("Withdraw amount: "))
-            withdraw(account, amount)
+            withdraw(session,account, amount)
         elif choice == "4":
             view_transactions(account)
         elif choice == "5":
