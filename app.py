@@ -67,3 +67,17 @@ def view_transactions(account):
     transactions = session.query(Transaction).filter_by(account_id = account.id).all()
     for t in transactions:
         print(f'{t.timestamp} - {t.type} - ${t.amount}')
+def transfer_funds(session, from_account, to_account, amount):
+    if from_account.balance >= amount:
+        from_account.balance -= amount
+        to_account.balance += amount
+
+        # Record both transactions
+        t1 = Transaction(account_id=from_account.id, type='transfer_out', amount=amount)
+        t2 = Transaction(account_id=to_account.id, type='transfer_in', amount=amount)
+
+        session.add_all([t1, t2])
+        session.commit()
+        print(f"Transferred ${amount} from {from_account.account_type} to {to_account.account_type}")
+    else:
+        print("Insufficient funds for transfer.")

@@ -1,4 +1,4 @@
-from app import register_user,login,create_account,deposit,withdraw,view_transactions
+from app import register_user,login,create_account,deposit,withdraw,view_transactions,transfer_funds
 from models import Bank_Account
 
 current_user =None
@@ -44,7 +44,7 @@ def user_menu(user):
     choice=int (input('Select account: ')) 
     account =accounts[choice-1]   
     while True:
-        print("\n1. View Balance\n2. Deposit\n3. Withdraw\n4. Transactions\n5.Switch Account \n6.Create new Account \n7Logout")
+        print("\n1. View Balance\n2. Deposit\n3. Withdraw\n4. Transactions\n5.Switch Account \n6.Create new Account \n7.Transfer funds \n8Logout")
         choice = input("> ")
 
         if choice == "1":
@@ -92,6 +92,25 @@ def user_menu(user):
             #new account
             acc_type = input("Create account - type(Savings/checking):")
             create_account(user,acc_type) 
-            session.commit() 
+            session.commit()
 
-                    
+
+        elif choice =="7":
+            accounts = session.query(Bank_Account).filter_by(user_id=user.id).all()
+            print("\nYour Accounts:")
+            for i, acc in enumerate(accounts):
+                print(f"{i + 1}. {acc.account_type.capitalize()} (Balance: ${acc.balance})")
+
+            target_index = int(input("Select account to transfer TO: ")) - 1
+            target_account = accounts[target_index]
+
+            if target_account.id == account.id:
+                print("You can't transfer to the same account.")
+                continue
+
+            amount = float(input("Amount to transfer: "))
+            transfer_funds(session, account, target_account, amount)
+
+
+        elif choice == "8":
+            break
