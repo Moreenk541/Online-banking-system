@@ -1,5 +1,5 @@
 from conn import SessionLocal
-from models import User, Bank_Account, Transaction
+from models import User, Bank_Account, Transaction, Loan
 
 from sqlalchemy.exc import IntegrityError
 
@@ -8,8 +8,8 @@ session = SessionLocal()
 
 #Registering
 
-def register_user(name,email,password):
-    user = User(name=name,email=email,password=password)
+def register_user(name,contact,email,password):
+    user = User(name=name,contact=contact,email=email,password=password)
 
     try:
         session.add(user)
@@ -81,3 +81,53 @@ def transfer_funds(session, from_account, to_account, amount):
         print(f"Transferred ${amount} from {from_account.account_type} to {to_account.account_type}")
     else:
         print("Insufficient funds for transfer.")
+
+def apply_for_loan(session, user_id, account_id, loan_amount, months):
+    user = session.query(User).filter_by(id=user_id).first()
+    account = session.query(Bank_Account).filter_by(id=account_id, user_id=user_id).first()
+
+    if not user or not account:
+        print("User or account not found.")
+        return False
+
+    if account.account_type.lower() != 'checking' or account.balance < 5000:
+        print("Loan application requires a checking account with a balance of at least $5,000.")
+        return False
+
+    if not (0 < loan_amount <= 30000):
+        print("Loan amount must be between $1 and $30,000.")
+        return False
+
+    if not (0 < months <= 6):
+        print("Loan repayment period must be between 1 and 6 months.")
+        return False
+
+    interest_rate_per_month = 0.08
+    monthly_payment = (loan_amount * (1 + interest_rate_per_month * months)) / months
+
+    try:
+        loan = Loan(
+            user_id=user.id,
+            account_id=account.id,
+            amount=loan_amount,
+            interest_rate=interest_rate_per_month,
+            months=months,
+            monthly_payment=monthly_payment,
+            status='approved' # Automatically approve for simplicity
+        )
+        session.add(loan)
+
+        # Add loan amount to account balance
+        account.balance += loan_amount
+        
+        # Record transaction for loan
+        transaction = Transaction(account_id=account.id, type='loan_credit', amount=loan_amount)
+        session.add(transaction)
+
+        session.commit()
+        print(f"Loan of ${loan_amount} approved for {months} months. Monthly payment: ${monthly_payment:.2f}")
+        return True
+    except Exception as e:
+        session.rollback()
+        print(f"An error occurred during loan application: {e}")
+        return False

@@ -1,5 +1,5 @@
-from app import register_user,login,create_account,deposit,withdraw,view_transactions,transfer_funds
-from models import Bank_Account
+from app import register_user,login,create_account,deposit,withdraw,view_transactions,transfer_funds,apply_for_loan
+from models import Bank_Account, User
 
 current_user =None
 
@@ -12,10 +12,11 @@ def main_menu():
 
         if choice =="1":
             name = input('Name: ')
+            contact= input('contact')
             email = input('Email: ')
             password = input('Password: ')
 
-            register_user(name,email,password)
+            register_user(name,contact,email,password)
 
         elif  choice =="2"  :
             email=input('Email: ')
@@ -41,36 +42,55 @@ def user_menu(user):
     for i, acc in enumerate(accounts):  
         print(f'\n{i+1}. {acc.account_type.capitalize()} (Balance: {acc.balance})')  
 
-    choice=int (input('Select account: ')) 
-    account =accounts[choice-1]   
     while True:
-        print("\n1. View Balance\n2. Deposit\n3. Withdraw\n4. Transactions\n5.Switch Account \n6.Create new Account \n7.Transfer funds \n8Logout")
+        try:
+            choice = int(input('Select account: '))
+            if 1 <= choice <= len(accounts):
+                account = accounts[choice - 1]
+                break
+            else:
+                print("Invalid account number. Please try again.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+    
+    while True:
+        print("\n1. View Balance\n2. Deposit\n3. Withdraw\n4. Transactions\n5.Switch Account \n6.Create new Account \n7.Transfer funds \n8. Apply for Loan \n9. Logout")
         choice = input("> ")
 
         if choice == "1":
-            
             accounts = session.query(Bank_Account).filter_by(user_id=user.id).all()
             print("\nYour Accounts:")
             for i, acc in enumerate(accounts):
                 print(f"{i + 1}. {acc.account_type.capitalize()} (Balance: ${acc.balance})")
-            choice = int(input("Select account: "))
-            account = accounts[choice - 1]
+            while True:
+                try:
+                    choice = int(input("Select account: "))
+                    if 1 <= choice <= len(accounts):
+                        account = accounts[choice - 1]
+                        break
+                    else:
+                        print("Invalid account number. Please try again.")
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
 
             print(f"Balance: ${account.balance}")
 
 
         elif choice == "2":
-
-
             accounts = session.query(Bank_Account).filter_by(user_id=user.id).all()
             print("\nYour Accounts:")
             for i, acc in enumerate(accounts):
                 print(f"{i + 1}. {acc.account_type.capitalize()} (Balance: ${acc.balance})")
-            choice = int(input("Select account: "))
-            account = accounts[choice - 1]
-
-
-
+            while True:
+                try:
+                    choice = int(input("Select account: "))
+                    if 1 <= choice <= len(accounts):
+                        account = accounts[choice - 1]
+                        break
+                    else:
+                        print("Invalid account number. Please try again.")
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
 
             amount = float(input("Deposit amount: "))
             deposit(session,account, amount) 
@@ -85,8 +105,16 @@ def user_menu(user):
             print("\nYour Accounts:")
             for i, acc in enumerate(accounts):
                 print(f"{i + 1}. {acc.account_type.capitalize()} (Balance: ${acc.balance})")
-            choice = int(input("Select account: "))
-            account = accounts[choice - 1]
+            while True:
+                try:
+                    choice = int(input("Select account: "))
+                    if 1 <= choice <= len(accounts):
+                        account = accounts[choice - 1]
+                        break
+                    else:
+                        print("Invalid account number. Please try again.")
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
 
         elif choice =="6":
             #new account
@@ -101,8 +129,16 @@ def user_menu(user):
             for i, acc in enumerate(accounts):
                 print(f"{i + 1}. {acc.account_type.capitalize()} (Balance: ${acc.balance})")
 
-            target_index = int(input("Select account to transfer TO: ")) - 1
-            target_account = accounts[target_index]
+            while True:
+                try:
+                    target_index = int(input("Select account to transfer TO: ")) - 1
+                    if 0 <= target_index < len(accounts):
+                        target_account = accounts[target_index]
+                        break
+                    else:
+                        print("Invalid account number. Please try again.")
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
 
             if target_account.id == account.id:
                 print("You can't transfer to the same account.")
@@ -111,6 +147,52 @@ def user_menu(user):
             amount = float(input("Amount to transfer: "))
             transfer_funds(session, account, target_account, amount)
 
-
         elif choice == "8":
+            # Apply for Loan
+            checking_accounts = [acc for acc in accounts if acc.account_type.lower() == 'checking']
+            if not checking_accounts:
+                print("You need a checking account to apply for a loan.")
+                continue
+
+            print("\nSelect a checking account for the loan application:")
+            for i, acc in enumerate(checking_accounts):
+                print(f"{i + 1}. {acc.account_type.capitalize()} (Balance: ${acc.balance})")
+
+            selected_checking_account = None
+            while True:
+                try:
+                    acc_choice = int(input("Select account: "))
+                    if 1 <= acc_choice <= len(checking_accounts):
+                        selected_checking_account = checking_accounts[acc_choice - 1]
+                        break
+                    else:
+                        print("Invalid account number. Please try again.")
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
+            
+            if selected_checking_account.balance < 5000:
+                print("Your checking account balance must be at least $5,000 to apply for a loan.")
+                continue
+
+            try:
+                loan_amount = float(input("Enter loan amount (up to $30,000): "))
+                if not (0 < loan_amount <= 30000):
+                    print("Invalid loan amount. Must be between $1 and $30,000.")
+                    continue
+            except ValueError:
+                print("Invalid input. Please enter a number for the loan amount.")
+                continue
+
+            try:
+                months = int(input("Enter repayment months (1-6): "))
+                if not (0 < months <= 6):
+                    print("Invalid number of months. Must be between 1 and 6.")
+                    continue
+            except ValueError:
+                print("Invalid input. Please enter an integer for months.")
+                continue
+
+            apply_for_loan(session, user.id, selected_checking_account.id, loan_amount, months)
+
+        elif choice == "9":
             break
