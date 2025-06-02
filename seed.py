@@ -3,18 +3,17 @@ from sqlalchemy.orm import sessionmaker
 from models import Base, User, Bank_Account, Transaction
 from datetime import datetime
 
-# Database URL (should match your alembic.ini and conn.py)
+# Database URL 
 DATABASE_URL = "sqlite:///bank.db"
 
 def seed_data():
     engine = create_engine(DATABASE_URL)
-    Base.metadata.create_all(engine) # Ensure tables are created if not already
-
+    Base.metadata.create_all(engine) 
     Session = sessionmaker(bind=engine)
     session = Session()
 
     try:
-        # Check if data already exists to prevent duplicates
+       
         if session.query(User).first():
             print("Database already seeded. Skipping seeding process.")
             return
