@@ -2,6 +2,7 @@ from conn import SessionLocal
 from models import User, Bank_Account, Transaction, Loan
 
 from sqlalchemy.exc import IntegrityError
+from tabulate import tabulate
 
 
 session = SessionLocal()
@@ -64,15 +65,27 @@ def withdraw(session,account,amount):
 
 #     Transactions
 def view_transactions(account):
-    transactions = session.query(Transaction).filter_by(account_id = account.id).all()
-    for t in transactions:
-        print(f'{t.timestamp} - {t.type} - ${t.amount}')
+
+    transactions = session.query(Transaction).filter_by(account_id=account.id).all()
+    if transactions:
+        
+        headers = ["Timestamp", "Type", "Amount"]
+        table_data = []
+
+        for t in transactions:
+            table_data.append([t.timestamp, t.type, f"${t.amount:.2f}"])
+        print(tabulate(table_data, headers=headers, tablefmt="grid"))
+
+    else:
+        print("No transactions found for this account.")
+
+
 def transfer_funds(session, from_account, to_account, amount):
     if from_account.balance >= amount:
         from_account.balance -= amount
         to_account.balance += amount
 
-        # Record both transactions
+        # # Record both transactions
         t1 = Transaction(account_id=from_account.id, type='transfer_out', amount=amount)
         t2 = Transaction(account_id=to_account.id, type='transfer_in', amount=amount)
 
@@ -130,4 +143,29 @@ def apply_for_loan(session, user_id, account_id, loan_amount, months):
     except Exception as e:
         session.rollback()
         print(f"An error occurred during loan application: {e}")
+        return False
+
+def delete_account_feature(session, account):
+    if account.balance != 0:
+        print("Account balance must be zero to delete the account.")
+        return False
+
+    outstanding_loans = session.query(Loan).filter_by(account_id=account.id, status='approved').first()
+    if outstanding_loans:
+        print("Cannot delete account with outstanding loans.")
+        return False
+
+    try:
+        # Delete associated transactions first
+        session.query(Transaction).filter_by(account_id=account.id).delete()
+        # Delete associated loans (if any, though checked above)
+        session.query(Loan).filter_by(account_id=account.id).delete()
+        
+        session.delete(account)
+        session.commit()
+        print(f"Account {account.account_type.capitalize()} (ID: {account.id}) deleted successfully.")
+        return True
+    except Exception as e:
+        session.rollback()
+        print(f"An error occurred while deleting the account: {e}")
         return False
